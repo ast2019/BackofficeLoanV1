@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { requestsApi, branchesApi } from '../services/api';
 import { LoanRequestStatus, RequestsFilter } from '../types';
 import { Link } from 'react-router-dom';
@@ -20,7 +20,7 @@ const RequestsListPage: React.FC = () => {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['requests', filter],
     queryFn: () => requestsApi.getRequests(filter),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
   const { data: branches } = useQuery({
