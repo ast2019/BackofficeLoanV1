@@ -7,7 +7,18 @@ import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { useAuth } from '../App';
-import { ArrowRight, AlertTriangle, FileText, Download, CheckCircle, XCircle } from 'lucide-react';
+import { 
+  ArrowRight, 
+  AlertTriangle, 
+  FileText, 
+  Download, 
+  CheckCircle, 
+  XCircle, 
+  UserCheck, 
+  Clock, 
+  Banknote, 
+  ShieldAlert 
+} from 'lucide-react';
 
 // Steps for the stepper
 const STEPS = [
@@ -27,6 +38,7 @@ const RequestDetailPage: React.FC = () => {
   
   const [isLetterModalOpen, setIsLetterModalOpen] = useState(false);
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
+  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
   
   // Forms state
   const [letterData, setLetterData] = useState({ number: '', date: '' });
@@ -62,7 +74,10 @@ const RequestDetailPage: React.FC = () => {
 
   const closeMutation = useMutation({
     mutationFn: () => requestsApi.closeRequest(id!),
-    onSuccess: () => queryClient.invalidateQueries(['request', id])
+    onSuccess: () => {
+      queryClient.invalidateQueries(['request', id]);
+      setIsCloseModalOpen(false);
+    }
   });
 
   const retryShahkarMutation = useMutation({
@@ -78,6 +93,20 @@ const RequestDetailPage: React.FC = () => {
   // Handle rejected/closed logic for stepper visual
   const isRejected = req.status === LoanRequestStatus.RejectedByShahkar;
   const isClosed = req.status === LoanRequestStatus.Closed;
+
+  const getTimelineIcon = (status: LoanRequestStatus) => {
+    switch (status) {
+      case LoanRequestStatus.Submitted: return <FileText className="w-4 h-4 text-blue-600" />;
+      case LoanRequestStatus.IdentityCheck: return <UserCheck className="w-4 h-4 text-purple-600" />;
+      case LoanRequestStatus.RejectedByShahkar: return <ShieldAlert className="w-4 h-4 text-red-600" />;
+      case LoanRequestStatus.WaitingForLetter: return <Clock className="w-4 h-4 text-yellow-600" />;
+      case LoanRequestStatus.LetterIssued: return <FileText className="w-4 h-4 text-indigo-600" />;
+      case LoanRequestStatus.WaitingForBankApproval: return <Banknote className="w-4 h-4 text-orange-600" />;
+      case LoanRequestStatus.LoanPaid: return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case LoanRequestStatus.Closed: return <XCircle className="w-4 h-4 text-gray-600" />;
+      default: return <div className="w-2 h-2 rounded-full bg-gray-400" />;
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -220,9 +249,7 @@ const RequestDetailPage: React.FC = () => {
               {req.status !== LoanRequestStatus.Closed && req.status !== LoanRequestStatus.LoanPaid && user?.role !== UserRole.ReadOnly && (
                 <Button 
                   variant="danger" 
-                  onClick={() => {
-                     if(window.confirm('آیا از بستن این درخواست اطمینان دارید؟')) closeMutation.mutate();
-                  }}
+                  onClick={() => setIsCloseModalOpen(true)}
                   isLoading={closeMutation.isLoading}
                 >
                   <XCircle className="w-4 h-4 me-2" />
@@ -240,14 +267,26 @@ const RequestDetailPage: React.FC = () => {
 
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <h3 className="font-bold text-gray-900 mb-4">تاریخچه تغییرات</h3>
-            <div className="relative border-r border-gray-200 me-2">
+            <div className="relative border-r-2 border-gray-100 me-2 space-y-6">
               {req.history.map((h, i) => (
-                <div key={i} className="mb-6 me-4 relative">
-                  <div className="absolute -right-1.5 top-1.5 w-3 h-3 bg-gray-300 rounded-full border-2 border-white"></div>
-                  <p className="text-sm font-medium text-gray-900">{h.status}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {new Date(h.changedAt).toLocaleString('fa-IR')} <br/> توسط: {h.changedBy}
-                  </p>
+                <div key={i} className="relative me-6">
+                  <div className="absolute -right-[31px] top-1 w-8 h-8 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm z-10">
+                     {getTimelineIcon(h.status)}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-gray-900">{h.status}</span> 
+                    <span className="text-xs text-gray-500 mt-1">
+                        {new Date(h.changedAt).toLocaleString('fa-IR')}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                        توسط: {h.changedBy}
+                    </span>
+                     {h.note && (
+                       <div className="mt-2 text-sm text-gray-600 bg-gray-50 p-2 rounded border border-gray-100">
+                         {h.note}
+                       </div>
+                     )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -323,6 +362,29 @@ const RequestDetailPage: React.FC = () => {
                   value={bankData.reason} onChange={e => setBankData({...bankData, reason: e.target.value})}></textarea>
              </div>
            )}
+        </div>
+      </Modal>
+
+      <Modal 
+        isOpen={isCloseModalOpen} 
+        onClose={() => setIsCloseModalOpen(false)} 
+        title="بستن درخواست"
+        footer={
+           <>
+             <Button variant="ghost" onClick={() => setIsCloseModalOpen(false)}>انصراف</Button>
+             <Button variant="danger" onClick={() => closeMutation.mutate()} isLoading={closeMutation.isLoading}>بله، ببند</Button>
+           </>
+        }
+      >
+        <div className="space-y-4">
+           <div className="p-4 bg-red-50 text-red-800 rounded-lg flex gap-3">
+             <AlertTriangle className="w-6 h-6 shrink-0" />
+             <p className="text-sm">
+               آیا از بستن درخواست شماره <strong>{req.requestNumber}</strong> اطمینان دارید؟
+               <br/>
+               این عملیات باعث بایگانی شدن درخواست می‌شود و کاربر مجبور به ثبت درخواست جدید خواهد بود.
+             </p>
+           </div>
         </div>
       </Modal>
     </div>
