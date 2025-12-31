@@ -11,8 +11,8 @@ import NotesPanel from '../components/ui/NotesPanel';
 import SmsLogsPanel from '../components/ui/SmsLogsPanel';
 import { useAuth } from '../App';
 import { 
-  ArrowRight, AlertTriangle, FileText, Download, CheckCircle, 
-  XCircle, UserCheck, Clock, Banknote, ShieldAlert, Upload
+  ArrowRight, FileText, Download, CheckCircle, 
+  XCircle, Clock, Upload, Circle, Check, User
 } from 'lucide-react';
 
 const STEPS = [
@@ -233,6 +233,34 @@ const RequestDetailPage: React.FC = () => {
               
               {/* Fallback View */}
               {isClosed && <div className="p-3 bg-gray-100 text-gray-600 text-sm rounded text-center">پرونده بسته شده است.</div>}
+            </div>
+          </div>
+
+          {/* Timeline History */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 className="font-bold text-gray-900 mb-4">تاریخچه تغییرات</h3>
+            <div className="relative border-r-2 border-gray-100 me-2 space-y-6">
+              {req.history && req.history.map((h, i) => (
+                <div key={i} className="relative me-6">
+                  <div className="absolute -right-[31px] top-1 w-8 h-8 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm z-10">
+                    <Circle className="w-3 h-3 text-brand" fill="currentColor" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-gray-900">{h.status}</span> 
+                    <span className="text-xs text-gray-500 mt-1">
+                        {new Date(h.changedAt).toLocaleString('fa-IR')}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                        {h.changedBy}
+                    </span>
+                    {h.note && (
+                      <div className="mt-1 text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                        {h.note}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
