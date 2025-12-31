@@ -19,8 +19,13 @@ export enum LoanRequestStatus {
 }
 
 export interface Branch {
+  id: string;
   code: string;
   name: string;
+  city?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface TTShahrStatus {
@@ -117,6 +122,13 @@ export interface UsersFilter {
   search?: string;
   role?: UserRole;
   ttshahrRegistered?: boolean;
+  page: number;
+  pageSize: number;
+}
+
+export interface BranchesFilter {
+  search?: string;
+  isActive?: boolean;
   page: number;
   pageSize: number;
 }

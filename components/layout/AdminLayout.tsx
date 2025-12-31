@@ -18,9 +18,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ user, onLogout }) => {
     { name: 'مدیریت کاربران', href: '/admin/users', icon: Users },
   ];
   
-  // Only SuperAdmin sees settings (placeholder)
   if (user?.role === UserRole.SuperAdmin) {
-     // navigation.push({ name: 'تنظیمات', href: '/admin/settings', icon: Settings });
+     navigation.push({ name: 'مدیریت شعب', href: '/admin/branches', icon: Building2 });
   }
 
   return (

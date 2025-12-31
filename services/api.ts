@@ -2,24 +2,28 @@ import {
   LoanRequest, 
   RequestsFilter, 
   UsersFilter,
+  BranchesFilter,
   PaginatedResponse, 
   User, 
   LoanRequestStatus,
   UserRole,
   Note,
   SmsLog,
-  AppConfig
+  AppConfig,
+  Branch
 } from '../types';
 import { MOCK_REQUESTS, MOCK_USERS, MOCK_BRANCHES, MOCK_NOTES, MOCK_SMS_LOGS } from './mockData';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Helper to simulate mutable database
+let mutableBranches = [...MOCK_BRANCHES];
+
 export const authApi = {
   login: async (username: string, password: string): Promise<{ user: User, token: string }> => {
     await delay(600);
-    // Simple mock auth
     const found = MOCK_USERS.find(u => u.username === username);
-    if (found && password === username) { // Mock password rule: same as username
+    if (found && password === username) { 
        return { user: found, token: `mock_token_${found.role}_${Date.now()}` };
     }
     throw new Error("نام کاربری یا رمز عبور اشتباه است (از نام کاربری به عنوان رمز استفاده کنید)");
@@ -31,8 +35,6 @@ export const authApi = {
 
   getMe: async (): Promise<User> => {
     await delay(300);
-    // Default to superadmin if localstorage logic is simple in this demo
-    // In real app, verify token
     return MOCK_USERS[0]; 
   }
 };
@@ -40,7 +42,7 @@ export const authApi = {
 export const configApi = {
   getConfig: async (): Promise<AppConfig> => {
     await delay(200);
-    return { letterMode: 'manual' }; // Change to 'auto' to test auto mode
+    return { letterMode: 'manual' }; 
   }
 };
 
@@ -148,12 +150,11 @@ export const usersApi = {
 
   refreshTTShahr: async (id: string) => {
     await delay(1200);
-    // Mock random result
     return { isRegistered: Math.random() > 0.5, lastCheckedAt: new Date().toISOString() };
   },
 
   getUserNotes: async (id: string): Promise<Note[]> => {
-    return requestsApi.getNotes(id); // Using same mock store
+    return requestsApi.getNotes(id); 
   },
 
   createUserNote: async (id: string, text: string, authorName: string) => {
@@ -164,6 +165,76 @@ export const usersApi = {
 export const branchesApi = {
   getAll: async () => {
     await delay(200);
-    return MOCK_BRANCHES;
+    return mutableBranches.filter(b => b.isActive);
+  },
+
+  getBranches: async (filter: BranchesFilter): Promise<PaginatedResponse<Branch>> => {
+    await delay(400);
+    let filtered = [...mutableBranches];
+    
+    if (filter.isActive !== undefined) {
+      filtered = filtered.filter(b => b.isActive === filter.isActive);
+    }
+    
+    if (filter.search) {
+      const q = filter.search.toLowerCase();
+      filtered = filtered.filter(b => 
+        b.name.toLowerCase().includes(q) || 
+        b.code.includes(q) || 
+        (b.city && b.city.toLowerCase().includes(q))
+      );
+    }
+
+    const total = filtered.length;
+    const start = (filter.page - 1) * filter.pageSize;
+    return { data: filtered.slice(start, start + filter.pageSize), total, page: filter.page, pageSize: filter.pageSize };
+  },
+
+  createBranch: async (data: Omit<Branch, 'id' | 'createdAt' | 'updatedAt'>) => {
+    await delay(500);
+    if (mutableBranches.some(b => b.code === data.code)) {
+      throw new Error("کد شعبه تکراری است");
+    }
+    const newBranch: Branch = {
+      ...data,
+      id: `b-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    mutableBranches.push(newBranch);
+    return newBranch;
+  },
+
+  updateBranch: async (id: string, data: Partial<Branch>) => {
+    await delay(500);
+    const index = mutableBranches.findIndex(b => b.id === id);
+    if (index === -1) throw new Error("Branch not found");
+    
+    if (data.code && mutableBranches.some(b => b.code === data.code && b.id !== id)) {
+      throw new Error("کد شعبه تکراری است");
+    }
+
+    mutableBranches[index] = {
+      ...mutableBranches[index],
+      ...data,
+      updatedAt: new Date().toISOString()
+    };
+    return mutableBranches[index];
+  },
+
+  deleteBranch: async (id: string) => {
+    await delay(500);
+    // Soft delete/Disable logic mainly
+    const branch = mutableBranches.find(b => b.id === id);
+    if (!branch) throw new Error("Branch not found");
+
+    // Mock check for usage
+    const isUsed = MOCK_REQUESTS.some(r => r.branch.code === branch.code);
+    if (isUsed) {
+       throw new Error("این شعبه در درخواست‌های موجود استفاده شده و قابل حذف نیست. می‌توانید آن را غیرفعال کنید.");
+    }
+    
+    mutableBranches = mutableBranches.filter(b => b.id !== id);
+    return { success: true };
   }
 };

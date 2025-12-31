@@ -1,9 +1,33 @@
 import { LoanRequest, LoanRequestStatus, UserRole, User, Branch, Note, SmsLog } from '../types';
 
 export const MOCK_BRANCHES: Branch[] = [
-  { code: "101", name: "شعبه مرکزی" },
-  { code: "102", name: "شعبه شمال تهران" },
-  { code: "201", name: "شعبه اصفهان" },
+  { 
+    id: "b1", 
+    code: "101", 
+    name: "شعبه مرکزی", 
+    city: "تهران", 
+    isActive: true, 
+    createdAt: "2023-01-01T00:00:00Z", 
+    updatedAt: "2023-01-01T00:00:00Z" 
+  },
+  { 
+    id: "b2", 
+    code: "102", 
+    name: "شعبه شمال تهران", 
+    city: "تهران", 
+    isActive: true, 
+    createdAt: "2023-02-01T00:00:00Z", 
+    updatedAt: "2023-02-01T00:00:00Z" 
+  },
+  { 
+    id: "b3", 
+    code: "201", 
+    name: "شعبه اصفهان", 
+    city: "اصفهان", 
+    isActive: true, 
+    createdAt: "2023-03-01T00:00:00Z", 
+    updatedAt: "2023-03-01T00:00:00Z" 
+  },
 ];
 
 // Admins & Users

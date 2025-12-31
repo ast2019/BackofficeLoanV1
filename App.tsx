@@ -9,6 +9,7 @@ import RequestsListPage from './pages/RequestsListPage';
 import RequestDetailPage from './pages/RequestDetailPage';
 import UsersListPage from './pages/UsersListPage';
 import UserDetailPage from './pages/UserDetailPage';
+import BranchesListPage from './pages/BranchesListPage';
 
 // Auth Context
 interface AuthContextType {
@@ -79,7 +80,7 @@ const App: React.FC = () => {
            <Route path="users" element={<UsersListPage />} />
            <Route path="users/:id" element={<UserDetailPage />} />
 
-           <Route path="branches" element={<div className="p-8">بخش مدیریت شعب (به زودی)</div>} />
+           <Route path="branches" element={<BranchesListPage />} />
            <Route index element={<Navigate to="dashboard" replace />} />
         </Route>
       </Route>
