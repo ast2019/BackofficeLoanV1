@@ -12,7 +12,8 @@ import SmsLogsPanel from '../components/ui/SmsLogsPanel';
 import { useAuth } from '../App';
 import { 
   ArrowRight, FileText, Download, CheckCircle, 
-  XCircle, Clock, Upload, Circle, Check, User
+  XCircle, Clock, Upload, Circle, UserCheck, 
+  Banknote, ShieldAlert, AlertTriangle
 } from 'lucide-react';
 
 const STEPS = [
@@ -102,6 +103,21 @@ const RequestDetailPage: React.FC = () => {
     mutationFn: (logId: string) => requestsApi.resendSms(logId),
     onSuccess: () => alert("پیامک مجددا ارسال شد.")
   });
+
+  const getTimelineIcon = (status: LoanRequestStatus) => {
+    switch (status) {
+      case LoanRequestStatus.Submitted: return <FileText className="w-4 h-4 text-blue-600" />;
+      case LoanRequestStatus.IdentityCheck: return <UserCheck className="w-4 h-4 text-purple-600" />;
+      case LoanRequestStatus.RejectedByShahkar: return <ShieldAlert className="w-4 h-4 text-red-600" />;
+      case LoanRequestStatus.WaitingForLetter: return <Clock className="w-4 h-4 text-yellow-600" />;
+      case LoanRequestStatus.LetterIssued: return <FileText className="w-4 h-4 text-indigo-600" />;
+      case LoanRequestStatus.WaitingForBankApproval: return <Banknote className="w-4 h-4 text-orange-600" />;
+      case LoanRequestStatus.LoanPaid: return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case LoanRequestStatus.Closed: return <XCircle className="w-4 h-4 text-gray-600" />;
+      case LoanRequestStatus.BankRejected: return <ShieldAlert className="w-4 h-4 text-red-600" />;
+      default: return <Circle className="w-3 h-3 text-gray-400" />;
+    }
+  };
 
   if (isLoading) return <div className="p-10 text-center">Loading...</div>;
   if (!req) return <div className="p-10 text-center text-red-500">Request not found</div>;
@@ -243,7 +259,7 @@ const RequestDetailPage: React.FC = () => {
               {req.history && req.history.map((h, i) => (
                 <div key={i} className="relative me-6">
                   <div className="absolute -right-[31px] top-1 w-8 h-8 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm z-10">
-                    <Circle className="w-3 h-3 text-brand" fill="currentColor" />
+                     {getTimelineIcon(h.status)}
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-gray-900">{h.status}</span> 
@@ -344,14 +360,27 @@ const RequestDetailPage: React.FC = () => {
         </div>
       </Modal>
 
-      <Modal isOpen={isCloseModalOpen} onClose={() => setIsCloseModalOpen(false)} title="بستن درخواست">
-         <div className="space-y-4">
-           <p className="text-sm text-red-600">آیا مطمئن هستید؟ این عملیات قابل بازگشت نیست.</p>
-           <div className="flex justify-end gap-2 mt-4">
+      <Modal 
+        isOpen={isCloseModalOpen} 
+        onClose={() => setIsCloseModalOpen(false)} 
+        title="بستن درخواست"
+        footer={
+           <>
              <Button variant="ghost" onClick={() => setIsCloseModalOpen(false)}>انصراف</Button>
-             <Button variant="danger" onClick={() => closeMutation.mutate()}>بله، ببند</Button>
+             <Button variant="danger" onClick={() => closeMutation.mutate()} isLoading={closeMutation.isPending}>بله، ببند</Button>
+           </>
+        }
+      >
+        <div className="space-y-4">
+           <div className="p-4 bg-red-50 text-red-800 rounded-lg flex gap-3">
+             <AlertTriangle className="w-6 h-6 shrink-0" />
+             <p className="text-sm">
+               آیا از بستن درخواست شماره <strong>{req.requestNumber}</strong> اطمینان دارید؟
+               <br/>
+               این عملیات باعث بایگانی شدن درخواست می‌شود و کاربر مجبور به ثبت درخواست جدید خواهد بود.
+             </p>
            </div>
-         </div>
+        </div>
       </Modal>
     </div>
   );
