@@ -142,4 +142,7 @@ export interface PaginatedResponse<T> {
 
 export interface AppConfig {
   letterMode: 'auto' | 'manual';
+  creditScoringEnabled: boolean;
+  returnedChequeCheckEnabled: boolean;
+  aiAdvisorEnabled: boolean;
 }

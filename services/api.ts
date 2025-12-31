@@ -42,7 +42,12 @@ export const authApi = {
 export const configApi = {
   getConfig: async (): Promise<AppConfig> => {
     await delay(200);
-    return { letterMode: 'manual' }; 
+    return { 
+      letterMode: 'manual',
+      creditScoringEnabled: false,
+      returnedChequeCheckEnabled: false,
+      aiAdvisorEnabled: false
+    }; 
   }
 };
 

@@ -13,7 +13,8 @@ import { useAuth } from '../App';
 import { 
   ArrowRight, FileText, Download, CheckCircle, 
   XCircle, Clock, Upload, Circle, UserCheck, 
-  Banknote, ShieldAlert, AlertTriangle
+  Banknote, ShieldAlert, AlertTriangle, Activity,
+  Ban, Bot, ShieldOff, RefreshCw
 } from 'lucide-react';
 
 const STEPS = [
@@ -44,6 +45,7 @@ const RequestDetailPage: React.FC = () => {
   const canRecordBank = [UserRole.SuperAdmin, UserRole.FinanceAdmin].includes(user?.role as UserRole);
   const canCloseRequest = [UserRole.SuperAdmin, UserRole.SeniorAdmin].includes(user?.role as UserRole);
   const canResendSms = user?.role === UserRole.SuperAdmin;
+  const canRefreshRisk = [UserRole.SuperAdmin, UserRole.SeniorAdmin].includes(user?.role as UserRole);
 
   // Queries
   const { data: req, isLoading } = useQuery({
@@ -187,6 +189,79 @@ const RequestDetailPage: React.FC = () => {
                   <span className="text-green-800">پرداخت شده در: {new Date(req.bankResult.paidAt).toLocaleDateString('fa-IR')}</span>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Risk & Validation Section - Feature Flagged */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Credit Scoring */}
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col h-full">
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-bold text-gray-900 flex items-center gap-2 text-sm">
+                  <Activity className="w-4 h-4 text-gray-500" />
+                  ریسک و اعتبارسنجی
+                </h3>
+                {!appConfig?.creditScoringEnabled && (
+                  <span className="px-2 py-0.5 rounded text-[10px] bg-gray-100 text-gray-500 whitespace-nowrap">غیرفعال</span>
+                )}
+              </div>
+              <div className="flex-1 flex flex-col justify-center items-center text-center py-4">
+                 {appConfig?.creditScoringEnabled ? (
+                   // Future placeholder
+                   <span>...</span>
+                 ) : (
+                   <>
+                     <ShieldOff className="w-8 h-8 text-gray-300 mb-2" />
+                     <p className="text-xs text-gray-500">ماژول اعتبارسنجی در حال حاضر فعال نیست و صرفاً جایگاه آن آماده شده است.</p>
+                   </>
+                 )}
+              </div>
+              <div className="mt-2 pt-2 border-t border-gray-50 flex justify-end">
+                 <Button size="sm" variant="ghost" disabled title={!appConfig?.creditScoringEnabled ? "این قابلیت هنوز فعال نشده است" : ""} className={!appConfig?.creditScoringEnabled ? "opacity-50 cursor-not-allowed" : ""}>
+                   <RefreshCw className="w-3 h-3 me-1" />
+                   بروزرسانی
+                 </Button>
+              </div>
+            </div>
+
+            {/* Returned Cheque */}
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col h-full">
+               <div className="flex justify-between items-start mb-2">
+                <h3 className="font-bold text-gray-900 flex items-center gap-2 text-sm">
+                  <Ban className="w-4 h-4 text-gray-500" />
+                  وضعیت چک برگشتی
+                </h3>
+                {!appConfig?.returnedChequeCheckEnabled && (
+                  <span className="px-2 py-0.5 rounded text-[10px] bg-gray-100 text-gray-500 whitespace-nowrap">غیرفعال</span>
+                )}
+              </div>
+              <div className="flex-1 flex flex-col justify-center items-center text-center py-4">
+                 {appConfig?.returnedChequeCheckEnabled ? (
+                   <span>...</span>
+                 ) : (
+                    <p className="text-xs text-gray-500">استعلام چک برگشتی در این نسخه فعال نیست.</p>
+                 )}
+              </div>
+            </div>
+
+            {/* AI Advisor */}
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col h-full">
+               <div className="flex justify-between items-start mb-2">
+                <h3 className="font-bold text-gray-900 flex items-center gap-2 text-sm">
+                  <Bot className="w-4 h-4 text-gray-500" />
+                  مشاوره هوشمند
+                </h3>
+                {!appConfig?.aiAdvisorEnabled && (
+                  <span className="px-2 py-0.5 rounded text-[10px] bg-gray-100 text-gray-500 whitespace-nowrap">غیرفعال</span>
+                )}
+              </div>
+              <div className="flex-1 flex flex-col justify-center items-center text-center py-4">
+                 {appConfig?.aiAdvisorEnabled ? (
+                   <span>...</span>
+                 ) : (
+                    <p className="text-xs text-gray-500">مشاوره هوشمند بر اساس داده‌های اعتبارسنجی در نسخه فعلی فعال نیست.</p>
+                 )}
+              </div>
             </div>
           </div>
 
