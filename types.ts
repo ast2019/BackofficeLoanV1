@@ -1,3 +1,11 @@
+export enum UserRole {
+  SuperAdmin = "super_admin",
+  FinanceAdmin = "finance_admin",
+  SeniorAdmin = "senior_admin",
+  Admin = "admin",
+  Borrower = "borrower"
+}
+
 export enum LoanRequestStatus {
   Submitted = "Submitted",
   IdentityCheck = "IdentityCheck",
@@ -6,13 +14,8 @@ export enum LoanRequestStatus {
   LetterIssued = "LetterIssued",
   WaitingForBankApproval = "WaitingForBankApproval",
   LoanPaid = "LoanPaid",
-  Closed = "Closed"
-}
-
-export enum UserRole {
-  SuperAdmin = "SuperAdmin",
-  SupportAgent = "SupportAgent",
-  ReadOnly = "ReadOnly"
+  Closed = "Closed",
+  BankRejected = "BankRejected"
 }
 
 export interface Branch {
@@ -20,12 +23,39 @@ export interface Branch {
   name: string;
 }
 
-export interface AdminUser {
+export interface TTShahrStatus {
+  isRegistered: boolean;
+  lastCheckedAt: string;
+}
+
+export interface Note {
+  id: string;
+  text: string;
+  authorName: string;
+  createdAt: string;
+  priority?: 'normal' | 'high';
+}
+
+export interface SmsLog {
+  id: string;
+  type: 'letter_issued' | 'loan_paid' | 'manual';
+  status: 'sent' | 'failed' | 'pending';
+  sentAt: string;
+  mobile: string;
+  message?: string;
+  errorMessage?: string;
+}
+
+export interface User {
   id: string;
   name: string;
-  username: string;
+  username: string; // usually mobile
+  mobile: string;
+  nationalId?: string;
   role: UserRole;
   avatar?: string;
+  ttshahr: TTShahrStatus;
+  createdAt: string;
 }
 
 export interface BankResult {
@@ -34,12 +64,14 @@ export interface BankResult {
   tenorMonths?: number;
   paidAt?: string;
   reason?: string;
+  referenceNo?: string;
 }
 
 export interface LetterInfo {
   fileId: string;
   letterNumber: string;
   issuedAt: string;
+  url?: string;
 }
 
 export interface ShahkarResult {
@@ -50,6 +82,7 @@ export interface ShahkarResult {
 export interface LoanRequest {
   id: string;
   requestNumber: string;
+  userId: string; // Link to User
   mobile: string;
   nationalId: string;
   fullName: string;
@@ -62,6 +95,7 @@ export interface LoanRequest {
   bankResult?: BankResult;
   createdAt: string;
   updatedAt: string;
+  ttshahrStatus: boolean; // Snapshot of registration at request time or synced
   history: Array<{
     status: LoanRequestStatus;
     changedBy: string;
@@ -72,8 +106,17 @@ export interface LoanRequest {
 
 export interface RequestsFilter {
   status?: LoanRequestStatus[];
-  search?: string; // mobile, nationalId, requestNumber
+  search?: string;
   branchCode?: string;
+  ttshahrRegistered?: boolean;
+  page: number;
+  pageSize: number;
+}
+
+export interface UsersFilter {
+  search?: string;
+  role?: UserRole;
+  ttshahrRegistered?: boolean;
   page: number;
   pageSize: number;
 }
@@ -83,4 +126,8 @@ export interface PaginatedResponse<T> {
   total: number;
   page: number;
   pageSize: number;
+}
+
+export interface AppConfig {
+  letterMode: 'auto' | 'manual';
 }

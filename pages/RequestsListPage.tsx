@@ -4,8 +4,9 @@ import { requestsApi, branchesApi } from '../services/api';
 import { LoanRequestStatus, RequestsFilter } from '../types';
 import { Link } from 'react-router-dom';
 import StatusBadge from '../components/ui/StatusBadge';
+import TTShahrBadge from '../components/ui/TTShahrBadge';
 import Button from '../components/ui/Button';
-import { Search, Filter, Eye } from 'lucide-react';
+import { Search, Eye } from 'lucide-react';
 
 const RequestsListPage: React.FC = () => {
   const [filter, setFilter] = useState<RequestsFilter>({
@@ -14,9 +15,9 @@ const RequestsListPage: React.FC = () => {
     search: '',
     status: [],
     branchCode: undefined,
+    ttshahrRegistered: undefined
   });
 
-  // Debounced search could be added here
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['requests', filter],
     queryFn: () => requestsApi.getRequests(filter),
@@ -68,7 +69,7 @@ const RequestsListPage: React.FC = () => {
           />
         </div>
         
-        <div className="w-full md:w-48">
+        <div className="w-full md:w-40">
           <select 
             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-brand focus:border-brand block w-full p-2.5"
             onChange={handleStatusChange}
@@ -76,12 +77,12 @@ const RequestsListPage: React.FC = () => {
           >
             <option value="">همه وضعیت‌ها</option>
             {Object.values(LoanRequestStatus).map(s => (
-              <option key={s} value={s}>{s}</option> // Ideally translate this key
+              <option key={s} value={s}>{s}</option>
             ))}
           </select>
         </div>
 
-        <div className="w-full md:w-48">
+        <div className="w-full md:w-40">
           <select 
             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-brand focus:border-brand block w-full p-2.5"
             onChange={(e) => setFilter(prev => ({...prev, branchCode: e.target.value || undefined, page: 1}))}
@@ -91,6 +92,21 @@ const RequestsListPage: React.FC = () => {
             {branches?.map(b => (
               <option key={b.code} value={b.code}>{b.name}</option>
             ))}
+          </select>
+        </div>
+        
+        <div className="w-full md:w-40">
+           <select 
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-brand focus:border-brand block w-full p-2.5"
+            onChange={(e) => {
+                const val = e.target.value;
+                setFilter(prev => ({...prev, ttshahrRegistered: val === 'yes' ? true : val === 'no' ? false : undefined, page: 1}));
+            }}
+            value={filter.ttshahrRegistered === true ? 'yes' : filter.ttshahrRegistered === false ? 'no' : ''}
+          >
+            <option value="">وضعیت تی‌تی‌شهر</option>
+            <option value="yes">ثبت‌نام شده</option>
+            <option value="no">عدم ثبت‌نام</option>
           </select>
         </div>
       </div>
@@ -103,9 +119,9 @@ const RequestsListPage: React.FC = () => {
               <tr>
                 <th className="px-6 py-3">شماره درخواست</th>
                 <th className="px-6 py-3">نام متقاضی</th>
-                <th className="px-6 py-3">موبایل</th>
                 <th className="px-6 py-3">مبلغ (تومان)</th>
-                <th className="px-6 py-3">وضعیت</th>
+                <th className="px-6 py-3">وضعیت درخواست</th>
+                <th className="px-6 py-3">تی‌تی‌شهر</th>
                 <th className="px-6 py-3">تاریخ</th>
                 <th className="px-6 py-3">عملیات</th>
               </tr>
@@ -127,10 +143,13 @@ const RequestsListPage: React.FC = () => {
               {data?.data.map((req) => (
                 <tr key={req.id} className="bg-white border-b hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">{req.requestNumber}</td>
-                  <td className="px-6 py-4">{req.fullName}</td>
-                  <td className="px-6 py-4 dir-ltr text-right">{req.mobile}</td>
+                  <td className="px-6 py-4">
+                    <div>{req.fullName}</div>
+                    <div className="text-xs text-gray-400">{req.mobile}</div>
+                  </td>
                   <td className="px-6 py-4">{req.amountToman.toLocaleString()}</td>
                   <td className="px-6 py-4"><StatusBadge status={req.status} /></td>
+                  <td className="px-6 py-4"><TTShahrBadge isRegistered={req.ttshahrStatus} /></td>
                   <td className="px-6 py-4 dir-ltr text-right">{new Date(req.createdAt).toLocaleDateString('fa-IR')}</td>
                   <td className="px-6 py-4">
                     <Link to={`/admin/requests/${req.id}`}>
@@ -149,7 +168,7 @@ const RequestsListPage: React.FC = () => {
         {/* Pagination */}
         <div className="flex items-center justify-between p-4 border-t border-gray-100">
           <span className="text-sm text-gray-700">
-            نمایش <span className="font-semibold">{((filter.page - 1) * filter.pageSize) + 1}</span> تا <span className="font-semibold">{Math.min(filter.page * filter.pageSize, data?.total || 0)}</span> از <span className="font-semibold">{data?.total || 0}</span> درخواست
+            صفحه {filter.page} از {Math.ceil((data?.total || 0) / filter.pageSize)}
           </span>
           <div className="flex gap-2">
             <Button 

@@ -1,24 +1,76 @@
-import { LoanRequest, LoanRequestStatus, UserRole, AdminUser, Branch } from '../types';
+import { LoanRequest, LoanRequestStatus, UserRole, User, Branch, Note, SmsLog } from '../types';
 
 export const MOCK_BRANCHES: Branch[] = [
   { code: "101", name: "شعبه مرکزی" },
   { code: "102", name: "شعبه شمال تهران" },
-  { code: "103", name: "شعبه بازار" },
   { code: "201", name: "شعبه اصفهان" },
-  { code: "301", name: "شعبه مشهد" },
 ];
 
-export const MOCK_ADMIN: AdminUser = {
-  id: "admin-1",
-  name: "علی مدیر",
-  username: "admin",
-  role: UserRole.SuperAdmin,
-  avatar: "https://picsum.photos/100/100"
-};
+// Admins & Users
+export const MOCK_USERS: User[] = [
+  {
+    id: "admin-1",
+    name: "مدیر ارشد سیستم",
+    username: "admin",
+    mobile: "09121111111",
+    role: UserRole.SuperAdmin,
+    avatar: "https://i.pravatar.cc/150?u=admin",
+    ttshahr: { isRegistered: true, lastCheckedAt: "2024-01-01T10:00:00Z" },
+    createdAt: "2023-01-01T10:00:00Z"
+  },
+  {
+    id: "finance-1",
+    name: "کارشناس مالی",
+    username: "finance",
+    mobile: "09122222222",
+    role: UserRole.FinanceAdmin,
+    ttshahr: { isRegistered: true, lastCheckedAt: "2024-01-01T10:00:00Z" },
+    createdAt: "2023-02-01T10:00:00Z"
+  },
+  {
+    id: "senior-1",
+    name: "سرپرست اداری",
+    username: "senior",
+    mobile: "09123333333",
+    role: UserRole.SeniorAdmin,
+    ttshahr: { isRegistered: true, lastCheckedAt: "2024-01-01T10:00:00Z" },
+    createdAt: "2023-03-01T10:00:00Z"
+  },
+  {
+    id: "agent-1",
+    name: "کارشناس اداری",
+    username: "agent",
+    mobile: "09124444444",
+    role: UserRole.Admin,
+    ttshahr: { isRegistered: true, lastCheckedAt: "2024-01-01T10:00:00Z" },
+    createdAt: "2023-04-01T10:00:00Z"
+  },
+  {
+    id: "user-1",
+    name: "رضا محمدی",
+    username: "09123456789",
+    mobile: "09123456789",
+    nationalId: "0012345678",
+    role: UserRole.Borrower,
+    ttshahr: { isRegistered: true, lastCheckedAt: "2024-05-10T10:00:00Z" },
+    createdAt: "2024-05-10T09:00:00Z"
+  },
+  {
+    id: "user-2",
+    name: "سارا احمدی",
+    username: "09351234567",
+    mobile: "09351234567",
+    nationalId: "1234567890",
+    role: UserRole.Borrower,
+    ttshahr: { isRegistered: false, lastCheckedAt: "2024-05-08T09:00:00Z" },
+    createdAt: "2024-05-08T08:00:00Z"
+  }
+];
 
 export const MOCK_REQUESTS: LoanRequest[] = [
   {
     id: "req-1",
+    userId: "user-1",
     requestNumber: "TRN-1403-001",
     fullName: "رضا محمدی",
     mobile: "09123456789",
@@ -27,6 +79,7 @@ export const MOCK_REQUESTS: LoanRequest[] = [
     tenorMonths: 12,
     branch: MOCK_BRANCHES[0],
     status: LoanRequestStatus.WaitingForLetter,
+    ttshahrStatus: true,
     createdAt: "2024-05-10T10:00:00Z",
     updatedAt: "2024-05-11T12:00:00Z",
     shahkar: { status: "ok", checkedAt: "2024-05-10T10:05:00Z" },
@@ -38,6 +91,7 @@ export const MOCK_REQUESTS: LoanRequest[] = [
   },
   {
     id: "req-2",
+    userId: "user-2",
     requestNumber: "TRN-1403-002",
     fullName: "سارا احمدی",
     mobile: "09351234567",
@@ -46,53 +100,31 @@ export const MOCK_REQUESTS: LoanRequest[] = [
     tenorMonths: 24,
     branch: MOCK_BRANCHES[1],
     status: LoanRequestStatus.WaitingForBankApproval,
+    ttshahrStatus: false,
     createdAt: "2024-05-08T09:00:00Z",
     updatedAt: "2024-05-09T14:30:00Z",
     shahkar: { status: "ok", checkedAt: "2024-05-08T09:05:00Z" },
-    letter: { fileId: "file-123", letterNumber: "LTR-9988", issuedAt: "2024-05-09T14:30:00Z" },
+    letter: { fileId: "file-123", letterNumber: "LTR-9988", issuedAt: "2024-05-09T14:30:00Z", url: "#" },
     history: [
       { status: LoanRequestStatus.Submitted, changedBy: "System", changedAt: "2024-05-08T09:00:00Z" },
       { status: LoanRequestStatus.WaitingForLetter, changedBy: "System", changedAt: "2024-05-08T09:05:00Z" },
       { status: LoanRequestStatus.LetterIssued, changedBy: "Admin", changedAt: "2024-05-09T14:00:00Z" },
       { status: LoanRequestStatus.WaitingForBankApproval, changedBy: "User", changedAt: "2024-05-09T14:30:00Z" }
     ]
-  },
-  {
-    id: "req-3",
-    requestNumber: "TRN-1403-003",
-    fullName: "امیر حسینی",
-    mobile: "09199876543",
-    nationalId: "0055667788",
-    amountToman: 30000000,
-    tenorMonths: 6,
-    branch: MOCK_BRANCHES[2],
-    status: LoanRequestStatus.LoanPaid,
-    createdAt: "2024-05-01T08:00:00Z",
-    updatedAt: "2024-05-05T10:00:00Z",
-    shahkar: { status: "ok", checkedAt: "2024-05-01T08:05:00Z" },
-    letter: { fileId: "file-124", letterNumber: "LTR-7766", issuedAt: "2024-05-02T10:00:00Z" },
-    bankResult: { approved: true, paidAmountToman: 30000000, tenorMonths: 6, paidAt: "2024-05-05T10:00:00Z" },
-    history: [
-      { status: LoanRequestStatus.Submitted, changedBy: "System", changedAt: "2024-05-01T08:00:00Z" },
-      { status: LoanRequestStatus.LoanPaid, changedBy: "Bank", changedAt: "2024-05-05T10:00:00Z" }
-    ]
-  },
-   {
-    id: "req-4",
-    requestNumber: "TRN-1403-004",
-    fullName: "نگار کریمی",
-    mobile: "09010000001",
-    nationalId: "3334445556",
-    amountToman: 20000000,
-    tenorMonths: 12,
-    branch: MOCK_BRANCHES[0],
-    status: LoanRequestStatus.RejectedByShahkar,
-    createdAt: "2024-05-12T11:00:00Z",
-    updatedAt: "2024-05-12T11:05:00Z",
-    shahkar: { status: "fail", checkedAt: "2024-05-12T11:05:00Z" },
-    history: [
-      { status: LoanRequestStatus.Submitted, changedBy: "System", changedAt: "2024-05-12T11:00:00Z" },
-      { status: LoanRequestStatus.RejectedByShahkar, changedBy: "System", changedAt: "2024-05-12T11:05:00Z" }
-    ]
   }
 ];
+
+export const MOCK_NOTES: Record<string, Note[]> = {
+  "req-1": [
+    { id: "n1", text: "مدارک هویتی کاربر تایید شد.", authorName: "کارشناس اداری", createdAt: "2024-05-10T10:02:00Z" }
+  ],
+  "user-1": [
+    { id: "un1", text: "کاربر خوش‌حساب.", authorName: "مدیر ارشد", createdAt: "2024-01-10T10:02:00Z", priority: 'normal' }
+  ]
+};
+
+export const MOCK_SMS_LOGS: Record<string, SmsLog[]> = {
+  "req-2": [
+    { id: "sms-1", type: "letter_issued", status: "sent", sentAt: "2024-05-09T14:05:00Z", mobile: "09351234567" }
+  ]
+};

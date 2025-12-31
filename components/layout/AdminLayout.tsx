@@ -1,7 +1,8 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { UserRole } from '../../types';
-import { LayoutDashboard, FileText, Building2, LogOut, User, Menu, X } from 'lucide-react';
+import { LayoutDashboard, FileText, Building2, LogOut, User, Menu, X, Users, Settings } from 'lucide-react';
+import RoleBadge from '../ui/RoleBadge';
 
 interface AdminLayoutProps {
   user: { name: string; role: string; avatar?: string } | null;
@@ -14,8 +15,13 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ user, onLogout }) => {
   const navigation = [
     { name: 'داشبورد', href: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'درخواست‌های وام', href: '/admin/requests', icon: FileText },
-    { name: 'مدیریت شعب', href: '/admin/branches', icon: Building2 }, // Optional
+    { name: 'مدیریت کاربران', href: '/admin/users', icon: Users },
   ];
+  
+  // Only SuperAdmin sees settings (placeholder)
+  if (user?.role === UserRole.SuperAdmin) {
+     // navigation.push({ name: 'تنظیمات', href: '/admin/settings', icon: Settings });
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -60,13 +66,17 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ user, onLogout }) => {
         </nav>
         
         <div className="absolute bottom-0 w-full p-4 border-t border-gray-100">
-          <div className="flex items-center gap-3 mb-4 px-2">
-            <div className="w-10 h-10 rounded-full bg-brand/10 flex items-center justify-center text-brand">
-              {user?.avatar ? <img src={user.avatar} className="w-10 h-10 rounded-full" alt="" /> : <User className="w-6 h-6" />}
+          <div className="flex flex-col gap-3 mb-4 px-2">
+            <div className="flex items-center gap-3">
+               <div className="w-10 h-10 rounded-full bg-brand/10 flex items-center justify-center text-brand shrink-0">
+                 {user?.avatar ? <img src={user.avatar} className="w-10 h-10 rounded-full" alt="" /> : <User className="w-6 h-6" />}
+               </div>
+               <div className="flex-1 min-w-0">
+                 <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
+               </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
-              <p className="text-xs text-gray-500 truncate">{user?.role === UserRole.SuperAdmin ? 'مدیر کل' : 'کارشناس'}</p>
+            <div>
+               {user && <RoleBadge role={user.role as UserRole} />}
             </div>
           </div>
           <button 
@@ -93,7 +103,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ user, onLogout }) => {
           <div className="flex-1"></div>
           
           <div className="flex items-center gap-4">
-             {/* Add Notifications or other header items here */}
+            {/* Header Actions */}
           </div>
         </header>
 

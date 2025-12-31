@@ -14,6 +14,7 @@ const statusConfig: Record<LoanRequestStatus, { label: string; color: string; bg
   [LoanRequestStatus.WaitingForBankApproval]: { label: 'منتظر تایید بانک', color: 'text-orange-700', bg: 'bg-orange-50' },
   [LoanRequestStatus.LoanPaid]: { label: 'پرداخت شده', color: 'text-green-700', bg: 'bg-green-50' },
   [LoanRequestStatus.Closed]: { label: 'بسته شده', color: 'text-gray-700', bg: 'bg-gray-100' },
+  [LoanRequestStatus.BankRejected]: { label: 'رد شده توسط بانک', color: 'text-red-800', bg: 'bg-red-100' },
 };
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
